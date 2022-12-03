@@ -1,0 +1,114 @@
+@import "variables";
+@import "~bootstrap/scss/bootstrap";
+
+body {
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+    background-color: $main_background;
+}
+
+#window-bar {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height: 25px;
+    background-color: $frame_header_background;
+    z-index: 99;
+    -webkit-app-region: drag;
+
+    .window-controls {
+        position: absolute;
+        right: 0px;
+        top: 0px;
+        height: 25px;
+        -webkit-app-region: no-drag;
+
+        .control-container {
+            display: inline-block;
+            width: 35px;
+            height: 25px;
+
+            div {
+                margin: 7px 13px;
+                width: 11px;
+                height: 11px;
+                background-size: contain;
+            }
+
+            .minimize,
+            .expand,
+            .close {
+                background-color: $frame_header_control_default;
+                -webkit-mask-size: contain;
+                mask-size: contain;
+            }
+
+            .minimize {
+                -webkit-mask-image: url("../images/minimize.svg");
+                mask-image: url("../images/minimize.svg");
+            }
+
+            .expand {
+                -webkit-mask-image: url("../images/expand.svg");
+                mask-image: url("../images/expand.svg");
+            }
+
+            .close {
+                -webkit-mask-image: url("../images/close.svg");
+                mask-image: url("../images/close.svg");
+            }
+        }
+
+        .control-container-default:hover {
+            background-color: $frame_header_control_default_hover;
+        }
+
+        .control-container-close:hover {
+            background-color: $frame_header_control_close_hover;
+        }
+    }
+
+    .title {
+        position: absolute;
+        font-size: 12px;
+    }
+}
+
+#content {
+    padding-top:25px;
+
+    #sidebar {
+        position:fixed;
+        top:25px;
+        bottom:0px;
+        left:0px;
+        width:60px;
+        background-color:red;
+
+        .nav-item{
+            margin:5px;
+            width: 50px;
+            height: 50px;
+            background-color:green;
+            border-radius: 2px;    
+        }
+    }
+
+    #panel {
+        position:fixed;
+        overflow:auto;
+        top:25px;
+        bottom:0px;
+        right:0px;
+        left:60px;
+
+        --bs-gutter-x: 1.5rem;
+        --bs-gutter-y: 0;
+        padding-right: calc(var(--bs-gutter-x) * 0.5);
+        padding-left: calc(var(--bs-gutter-x) * 0.5);
+        margin-right: auto;
+        margin-left: auto;
+    }
+}
