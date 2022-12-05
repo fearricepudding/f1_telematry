@@ -18,7 +18,7 @@ const MIN_HEIGHT = 400;
 const ENABLE_DEVTOOLS = true;
 
 const Storage = require("./storage").Storage;
-let stateMachine = new Storage("sesions", false);
+let stateMachine = new Storage("sessions", false);
 let sessionID = null;
 let meta = {};
 
