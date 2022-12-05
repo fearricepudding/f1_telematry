@@ -12,10 +12,16 @@ export default class SideBar extends Component {
                 <nav>
                     <Link to="/">
                         <div className="nav-item">
-                            D
+                            <div className="home-icon">
+                            </div>
                         </div>
                     </Link>
-                    
+                    <Link to="/sessions">
+                        <div className="nav-item">
+                            <div className="history-icon">
+                            </div>
+                        </div>
+                    </Link>
                 </nav>
             </div>
         );

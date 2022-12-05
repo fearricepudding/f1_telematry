@@ -33,7 +33,7 @@ contextBridge.exposeInMainWorld(
             } 
         },
         invoke: (channel, args) => {
-            let validChannels = ["getTelem", "getLap"];
+            let validChannels = ["getLiveData", "getMeta", "newMeta"];
             if (validChannels.includes(channel)) {
                 return ipcRenderer.invoke(channel, args);
             }

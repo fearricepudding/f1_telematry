@@ -7,67 +7,139 @@ const _electron = require("electron");
 const _path = require("path");
 const _fs = require("fs");
 
-const saveFileName = "state.dat";
-const encData = false;
 
-exports.getState = getState;
-exports.saveState = saveState;
-exports.appendState = appendState;
-
-function getState(sessionID) {
-    let encState = _fs.readFileSync(_path.join(__dirname, sessionID));
-    let stateString = "";
-    if(encData){
-        stateString = _electron.safeStorage.decryptString(encState);
-    }else{
-        stateString = encState;
+class Storage{
+    
+    constructor(rootPath="storage", encryptData=false){
+        this.rootPath = _path.join(__dirname+"/"+rootPath);
+        this.encryptData = encryptData;
+        this.sessionID = null;
+        this.storageInit();
     }
-    let stateObject;
-    try{
-        stateObject = JSON.parse(stateString);
-    }catch(e){
-        console.log(e);
-        return {};
-    };
-    return stateObject;
-}
 
-function saveState(newState, sessionID) {
-    if (typeof newState !== 'object' || newState === null) {
-        return false;
-    };
-
-    let stateString = JSON.stringify(newState);
-    let dataToSave;
-    if(encData){
-        let encAvailable = _electron.safeStorage.isEncryptionAvailable();
-        if (encAvailable){
-            dataToSave = _electron.safeStorage.encryptString(stateString);
+    /**
+     * Check if the root storage dir exists and create
+     */
+    storageInit(){
+        if(!_fs.existsSync(this.rootPath)){
+            console.log("[*][Storage] Root storage no exist, creating...");
+            this.createDirectory(this.rootPath);
         }else{
-            console.log("encryption unavailable");
-            //ToDo: Handle unsafe state storage
-        };
-    }else{
-        dataToSave = stateString;
-    };
+            console.log("[*][Storage] Root storage path found"); 
+        }
+    }
 
-    _fs.writeFile(_path.join(__dirname, sessionID), dataToSave, function (err, data) {
-        if (err) {
-            console.error(err);
+    setSessionId(sessionID){
+        if (sessionID === null){
             return;
         };
-    });
-};
+        this.sessionID = sessionID;
+        if(!this.sessionExists()){
+            this.createDirectory(this.rootPath+"/"+this.sessionID);
+        };
+    }
 
-function appendState(appendData, sessionID) {
-    data = getState(sessionID);
-    let parsed = null;
-    try{
-        parsed = JSON.parse(data);
-    }catch(e){
-        console.log("Failed to parse state");
-        return;
-    };
-    parsed.push(appendData);
-    saveState(parsed);
+    /**
+     * Create given directory path recursively
+     */
+    createDirectory(path){
+        return _fs.mkdirSync(path, {recursive: true});
+    }
+
+    fileExists(filePath){
+        return _fs.existsSync(filePath);
+    }
+
+    getPacketPath(packetId){
+        return this.rootPath+"/"+this.sessionID+"/data_"+packetId+".data";
+    }
+
+    stringifyJson(data) {
+        return JSON.stringify(data, (key, value) =>
+            typeof value === 'bigint'
+                ? value.toString()
+                : value // return everything else unchanged
+        );
+    }
+
+    appendData(data){
+        let session = data.m_header.m_sessionUID;
+        if(!this.sessionIsSet() || session !== this.sessionID){
+            this.setSessionId(session);
+        };
+        let packetId = data.m_header.m_packetId;
+        let packetFilePath = this.getPacketPath(packetId);
+        let dataToWrite = null;
+        if(typeof data === "object"){
+            dataToWrite = this.stringifyJson(data);
+        }else{
+            dataToWrite = data;
+        };
+        if(dataToWrite !== null){
+            //_fs.appendFileSync(packetFilePath, dataToWrite+"\n");
+        };
+    }
+
+    saveData(data){
+        let session = data.m_header.m_sessionUID;
+        if(!this.sessionIsSet() || session !== this.sessionID){
+            this.setSessionId(session);
+        };
+        let packetId = data.m_header.m_packetId;
+        let packetFilePath = this.getPacketPath(packetId);
+        let dataToWrite = null;
+        if(typeof data === "object"){
+            dataToWrite = this.stringifyJson(data);
+        }else{
+            dataToWrite = data;
+        };
+        if (dataToWrite !== null){
+            _fs.writeFileSync(packetFilePath, dataToWrite);
+        }
+    }
+
+    getMeta(){
+        let metaPath = this.rootPath+"/meta.data";
+        if(!this.fileExists(metaPath)){
+            return {};
+        };
+        let data = {};
+        let content = _fs.readFileSync(metaPath); 
+        try{
+            data = JSON.parse(content);
+        }catch(e){
+            console.error(e);
+        };
+        return data;
+    }
+
+    saveMeta(metaData){
+        let metaPath = this.rootPath+"/meta.data";
+        if(typeof metaData !== "object" || metaData === null){
+            return;
+        }
+        let dataToWrite = this.stringifyJson(metaData);
+        _fs.writeFileSync(metaPath, dataToWrite); 
+    }
+
+    sessionIsSet(){
+        if(this.sessionID === null){
+            return false
+        }
+        return true;
+    }
+
+    /**
+     * Check if session directory exists
+     */
+    sessionExists(){
+        if(this.sessionIsSet()){
+            let path = this.rootPath+"/"+this.sessionID;
+            return _fs.existsSync(path);
+        }else{
+            return false;
+        };
+    }
 }
+
+module.exports.Storage = Storage;

@@ -3,6 +3,7 @@ import { Outlet, HashRouter, Routes, Route } from "react-router-dom";
 
 import SideBar from "./SideBar";
 import Panel_Dashboard from "./panels/Dashboard";
+import Panel_SessionHistory from "./panels/SessionHistory";
 
 export default class Frame extends Component {
     constructor(props){
@@ -30,6 +31,7 @@ export default class Frame extends Component {
                         <div id="panel">
                             <Routes>
                                 <Route index path="/" element={<Panel_Dashboard />} />
+                                <Route path="/sessions" element={<Panel_SessionHistory />} />
                             </Routes>
                         </div>
                     </HashRouter>

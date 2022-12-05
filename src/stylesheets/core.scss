@@ -18,6 +18,13 @@ body {
     z-index: 99;
     -webkit-app-region: drag;
 
+    .title{
+        padding-top:3px;
+        padding-left:10px;
+        font-size:10px;
+
+    }
+
     .window-controls {
         position: absolute;
         right: 0px;
@@ -85,14 +92,36 @@ body {
         bottom:0px;
         left:0px;
         width:60px;
-        background-color:red;
+        background-color:$sidebar_background;
 
         .nav-item{
             margin:5px;
             width: 50px;
             height: 50px;
-            background-color:green;
-            border-radius: 2px;    
+            background-color: $sidebar_link_background;
+            border-radius: 2px;
+            mask-size: contain; 
+            -webkit-mask-size: contain;
+            padding:5px;
+        }
+
+        @mixin icon-mask($url){
+            -webkit-mask-size: contain;
+            mask-size: contain;
+            height:100%;
+            width:100%;
+            mask-repeat: no-repeat;
+            -webkit-mask-repeat: no-repeat;
+            background-color:white;
+            mask-image: url($url);
+            -webkit-mask-image: url($url);
+        }
+
+        .home-icon{
+            @include icon-mask("../images/home.svg");
+       }
+        .history-icon{
+            @include icon-mask("../images/history.svg");
         }
     }
 
@@ -103,6 +132,7 @@ body {
         bottom:0px;
         right:0px;
         left:60px;
+        padding-top:15px;
 
         --bs-gutter-x: 1.5rem;
         --bs-gutter-y: 0;
@@ -110,5 +140,38 @@ body {
         padding-left: calc(var(--bs-gutter-x) * 0.5);
         margin-right: auto;
         margin-left: auto;
+    }
+}
+
+@mixin data-container{
+    background-color: $data_widget_background;
+    border-radius: 5px;
+    width:100%;
+    padding: 15px;
+    color: $data_widget_text;
+    
+}
+
+.data-container-single{
+    @include data-container;
+    text-align:center;
+    .data-title{
+        font-size:16px;
+        text-align:center;
+    }
+    .data-content{
+        font-size:23px;
+    }
+}
+
+.data-container-double{
+    @include data-container;
+}
+
+.data-container-fullwidth{
+    @include data-container;
+    .data-content{
+        max-height:300px;
+        overflow-y:auto;
     }
 }

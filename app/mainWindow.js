@@ -17,9 +17,10 @@ const MIN_WIDTH = 400;
 const MIN_HEIGHT = 400;
 const ENABLE_DEVTOOLS = true;
 
-let stateMachine = require("./storage");
-let state;
+const Storage = require("./storage").Storage;
+let stateMachine = new Storage("sesions", false);
 let sessionID = null;
+let meta = {};
 
 let mainWindow = null;
 let mainWindowIsVisible = false;
@@ -111,6 +112,7 @@ function init() {
         };
     });
 
+    setupClientListeners();
     setupApi();
 
     _electron.app.on('second-instance', (_event, args) => {
@@ -128,7 +130,7 @@ function init() {
 
     _electron.app.whenReady().then(() => {
         launchMainAppWindow(true);
-        state = stateMachine.getState();
+        meta = stateMachine.getMeta();
         _electron.app.on('activate', () => {
             if (BrowserWindow.getAllWindows().length === 0) {
                 launchMainAppWindow(true);
@@ -137,11 +139,8 @@ function init() {
     });
     client.start();
 };
-let liveData = false;
 
-let currentTelem   = {};
-let currentLap     = {};
-let sessionHistory = {}
+let liveData = {};
 
 function setupApi() {
     console.log("test");
@@ -156,55 +155,130 @@ function setupApi() {
         mainWindow.maximize();
     });
     
-    client.on('carTelemetry', function (data) {
-        // console.log(data);
-        currentTelem = data;
-        if(!liveData){
-            liveData = true;
-        }
+    _electron.ipcMain.handle("getLiveData", async (event, args) =>{
+        let data = {};
+        for(let i = 0; i < args.length; i++){
+            let packetId = args[i];
+            let packetData = {live:false};
+            if(liveData.hasOwnProperty(packetId)){
+                packetData = liveData[packetId];
+                packetData.live = true;
+            };
+            data[packetId] = packetData;
+        } 
+        return data;
     });
-    client.on('lapData', function(data){
-        currentLap = data;
-        if (!liveData){
-            liveData = true;
+
+    _electron.ipcMain.handle("getMeta", async (event, args)=>{
+        let trackid = args[0];
+        if(meta.hasOwnProperty(trackid)){
+            return meta[trackid];
+        }else{
+            meta[trackid] = {
+                lapRecord: 0,
+                sector1: 0,
+                sector2: 0,
+                sector3: 0
+            };
+            stateMachine.saveMeta(meta);
+            return meta[trackid];
         }
+    })
+    _electron.ipcMain.handle("newMeta", async  (event, args)=>{
+        let trackId = args[0];
+        let newMeta = args[1];
+        meta[trackId] = newMeta;
+        stateMachine.saveMeta(meta);
+    }) 
+}
+
+
+function setupClientListeners(){
+    // motion 0
+    client.on('motion',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
     })
 
-    _electron.ipcMain.handle("getTelem", async () =>{
-        if(!liveData){
-            return {live: false};
-        };
-        let index = currentTelem.m_header.m_playerCarIndex;
-        let currentGear = "error"; 
-        if(currentTelem.m_carTelemetryData.length > 0){
-            currentGear = currentTelem.m_carTelemetryData[0].m_gear;
-        };
-        let ourData = {
-            live: true,
-            sessionTime: currentTelem.m_header.m_sessionTime,
-            currentGear: currentGear
-        }
-        return ourData;
+    // session 1
+    client.on('session',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.saveData(data);
     })
-    _electron.ipcMain.handle("getLap", async() => {
-        if(!liveData){
-            return {live: false};
+
+    // lap data 2
+    client.on('lapData',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // event 3
+    // client.on('event',function(data) {
+    //     let packetId = data.m_header.m_packetId;
+    //     liveData[packetId] = data;
+    //     stateMachine.appendData(data);
+    // })
+
+    // participants 4
+    client.on('participants',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // car setup 5
+    client.on('carSetups',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // car telemetry 6
+    client.on('carTelemetry',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // car status 7
+    client.on('carStatus',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // final classification 8
+    client.on('finalClassification',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // lobby info 9
+    client.on('lobbyInfo',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // car damage 10
+    client.on('carDamage',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        stateMachine.appendData(data);
+    })
+
+    // session history 11
+    client.on('sessionHistory',function(data) {
+        let packetId = data.m_header.m_packetId;
+        liveData[packetId] = data;
+        
+        let playerIndex = data.m_header.m_playerCarIndex;
+        if(data.m_carIdx === playerIndex){
+            stateMachine.saveData(data);
         };
-        let index = currentLap.m_header.m_playerCarIndex;
-        let ourData;
-        if(currentLap.m_lapData.length > 0){
-            let ourCarData = currentLap.m_lapData[index];
-            ourData = {
-                live: true,
-                currentLapTime: ourCarData.m_currentLapTimeInMS,
-                sectors: {
-                    "1": ourCarData.m_sector1TimeInMS,
-                    "2": ourCarData.m_sector2TimeInMS
-                },
-                lastLapTime: ourCarData.m_lastLapTimeInMS,
-                invalidated: ourCarData.m_currentLapInvalid
-            }
-        }
-        return ourData;
     })
 }
