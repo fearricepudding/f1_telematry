@@ -95,14 +95,21 @@ body {
         background-color:$sidebar_background;
 
         .nav-item{
-            margin:5px;
-            width: 50px;
-            height: 50px;
-            background-color: $sidebar_link_background;
+            margin:10px;
+            width: 40px;
+            height: 40px;
             border-radius: 2px;
             mask-size: contain; 
             -webkit-mask-size: contain;
             padding:5px;
+        }
+
+        .sep{
+            height:2px;
+            width:30px;
+            border-radius:5px;
+            background-color:rgba(0,0,0,.2);
+            margin-left:15px;
         }
 
         @mixin icon-mask($url){
@@ -112,16 +119,28 @@ body {
             width:100%;
             mask-repeat: no-repeat;
             -webkit-mask-repeat: no-repeat;
-            background-color:white;
+            background-color:rgb(94, 94, 94);
             mask-image: url($url);
             -webkit-mask-image: url($url);
         }
 
         .home-icon{
             @include icon-mask("../images/home.svg");
-       }
+        }
         .history-icon{
             @include icon-mask("../images/history.svg");
+        }
+        .records-icon{
+            @include icon-mask("../images/records.svg");
+        }
+        .leaderboard-icon{
+            @include icon-mask("../images/leaderboard.svg");
+        }
+        .profile-icon{
+            @include icon-mask("../images/profile.svg");
+        }
+        .settings-icon{
+            @include icon-mask("../images/settings.svg");
         }
     }
 
@@ -133,6 +152,7 @@ body {
         right:0px;
         left:60px;
         padding-top:15px;
+        padding-bottom:15px;
 
         --bs-gutter-x: 1.5rem;
         --bs-gutter-y: 0;
@@ -164,6 +184,14 @@ body {
     }
 }
 
+.green{
+    background-color:rgb(71, 148, 71)!important; 
+}
+
+.red{
+    background-color:rgb(185, 68, 68)!important;
+}
+
 .data-container-double{
     @include data-container;
 }
@@ -171,7 +199,7 @@ body {
 .data-container-fullwidth{
     @include data-container;
     .data-content{
-        max-height:300px;
+        height:300px;
         overflow-y:auto;
     }
 }

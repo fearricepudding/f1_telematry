@@ -2,7 +2,7 @@
   "name": "fov2",
   "version": "1.0.0",
   "description": "",
-  "main": "fo.js",
+  "main": "index.js",
   "scripts": {
     "start": "npx electron .",
     "build": "npx webpack --config webpack.config.js",
@@ -19,6 +19,7 @@
     "bootstrap": "^5.2.3",
     "css-loader": "^6.7.2",
     "electron": "^21.2.2",
+    "electron-packager": "^17.1.1",
     "file-loader": "^6.2.0",
     "mini-css-extract-plugin": "^2.6.1",
     "postcss-loader": "^7.0.1",

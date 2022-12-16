@@ -76,6 +76,7 @@ class Storage{
             dataToWrite = data;
         };
         if(dataToWrite !== null){
+            // This saves a LOT of data. Disable for now
             //_fs.appendFileSync(packetFilePath, dataToWrite+"\n");
         };
     }
@@ -104,13 +105,21 @@ class Storage{
             return {};
         };
         let data = {};
-        let content = _fs.readFileSync(metaPath); 
+        let content = this.getFileData(metaPath);
         try{
             data = JSON.parse(content);
         }catch(e){
             console.error(e);
         };
         return data;
+    }
+
+    getFileData(path){
+        if(this.fileExists(path)){
+            return _fs.readFileSync(path);
+        }else{
+            return null;
+        };
     }
 
     saveMeta(metaData){
@@ -140,6 +149,36 @@ class Storage{
             return false;
         };
     }
+
+    getSessionList(){
+        return _fs.readdirSync(this.rootPath, { withFileTypes: true })
+                    .filter(dirent => dirent.isDirectory())
+                    .map(dirent => dirent.name);
+    }
+
+    getSessionData(index=0, count=5){
+        let sessions = getSessionList();
+        let data = {};
+        for(let i = index; (i < sessions.length || i < (index+count)); i++){
+            let sessionID = sessions[i];
+            let sessionData = {};
+            let packetsWeSave = ["11", "1"];
+            for(let o = index; o < packetsWeSave.length; o++){
+                let packetID = packetsWeSave[o];
+                let path = this.rootPath+"/"+sessionID+"/data_"+packetID+".data";
+                let content = this.getFileData(path);
+                if(content !== null){
+                    try{
+                        sessionData[packetID] = JSON.parse(content);
+                    }catch(e){
+                        console.error(e);
+                    };
+                };
+            };
+            data[sesionID] = sessionData;
+        };
+        return data;
+    };
 }
 
 module.exports.Storage = Storage;

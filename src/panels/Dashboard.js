@@ -77,13 +77,15 @@ export default class Panel_Dashboard extends Component {
     render() {
 
         let sessiontime = "--:--:--";
-        let trackName = "Unknown";
+        let trackName = "No Track data";
         let trackRecord = "--:--:---";
 
         if(this.packetReady("1")){
             sessiontime = sessionTimeFormat(parseInt(this.state["1"].m_header.m_sessionTime));
             if(this.trackID === null || this.trackID !== this.state["1"].m_trackId){
                 this.trackID = this.state["1"].m_trackId;
+                this.thisSessionBest = 0;
+                this.lapHistoryTable = [];
                 this.getMeta();
             };
             if(this.state.hasOwnProperty("meta")){
@@ -95,20 +97,21 @@ export default class Panel_Dashboard extends Component {
             trackName = getTrackName(this.trackID);
         };
 
-
-
-        
         let currentLapTime = "--:--:---";
         let sectorOne = "--";
         let sectorTwo = "--";
         let invalidLap = "No";
+        let lapValidBool = false;
 
         if(this.packetReady("2")){
             let carIndex = this.state["2"].m_header.m_playerCarIndex;
             currentLapTime = msFormat(this.state["2"].m_lapData[carIndex].m_currentLapTimeInMS);
             let isLapValid = this.state["2"].m_lapData[carIndex].m_currentLapInvalid;
             invalidLap = (isLapValid === 0)?"Yes":"No";
+            lapValidBool = (isLapValid === 0);
         };
+
+        
 
         if(this.packetReady("11")){
             let carIndex = this.state["11"].m_header.m_playerCarIndex;
@@ -125,7 +128,7 @@ export default class Panel_Dashboard extends Component {
                         console.log(this.thisSessionBest);
                     }
 
-                    this.lapHistoryTable.push(
+                    this.lapHistoryTable.unshift(
                         <tr key={i}>
                             <td>{i+1}</td>
                             <td>{msFormat(item.m_lapTimeInMS)}</td>
@@ -144,7 +147,7 @@ export default class Panel_Dashboard extends Component {
         return (
             <div>
                 <div className="h3">
-                    Dashboard <button onClick={this.logState} style={{"float": "right"}}>Noot noot</button><button onClick={this.logHistory} style={{"float":"right"}}>Snoot</button>
+                    Current session 
                 </div>
                 <div className="row equal">
                     <div className="col-4">
@@ -179,33 +182,46 @@ export default class Panel_Dashboard extends Component {
                     </div>
                 </div>
                 <div className="row mt-4">
-                    <div className="col-4">
-                        <div className="data-container-single">
-                            <div className="data-title">
-                                Best lap this session 
+                    <div className="col-6">
+                        <div className="row">
+                            <div className="col-12">
+                                <div className="data-container-single">
+                                    <div className="data-title">
+                                        Best lap this session 
+                                    </div>
+                                    <div className="data-content">
+                                        {bestLapThisSession}
+                                    </div>
+                                </div>
                             </div>
-                             <div className="data-content">
-                                {bestLapThisSession}
+                            <div className="col-12 mt-3">
+                                <div className="data-container-single">
+                                    <div className="data-title">
+                                        Current lap time 
+                                    </div>
+                                    <div className="data-content">
+                                        {currentLapTime}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 mt-3">
+                                <div className={`data-container-single ${lapValidBool?"green":"red"}`}>
+                                    <div className="data-title">
+                                        Current lap valid
+                                    </div>
+                                    <div className="data-content">
+                                        {invalidLap}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div className="col-4">
-                        <div className="data-container-single">
-                            <div className="data-title">
-                                Current lap time 
-                            </div>
-                            <div className="data-content">
-                                {currentLapTime}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col-4">
-                        <div className="data-container-single">
-                            <div className="data-title">
-                                Current lap valid
-                            </div>
-                            <div className="data-content">
-                                {invalidLap}
+                    <div className="col-6">
+                        <div className="row">
+                            <div className="col-12">
+                                <div className="data-container-fullwidth">
+                                    <img src="./trackmaps/1.svg" style={{"width":"100%"}} /> 
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -214,7 +230,7 @@ export default class Panel_Dashboard extends Component {
                     <div className="col-12">
                         <div className="data-container-fullwidth">
                             <div className="data-title">
-                                Session valid laps 
+                                Session  laps 
                             </div>
                             <div className="data-content mt-2">
                                 <table className="table table-striped table-dark">

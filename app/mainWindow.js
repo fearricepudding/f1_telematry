@@ -11,8 +11,8 @@ const _path = require("path");
 const f1_2021_udp_1 = require("f1-2021-udp");
 var client = new f1_2021_udp_1.F1TelemetryClient();
 
-const DEFAULT_WIDTH = 1200;
-const DEFAULT_HEIGHT = 600;
+const DEFAULT_WIDTH = 1070;
+const DEFAULT_HEIGHT = 690;
 const MIN_WIDTH = 400;
 const MIN_HEIGHT = 400;
 const ENABLE_DEVTOOLS = true;
@@ -170,18 +170,22 @@ function setupApi() {
     });
 
     _electron.ipcMain.handle("getMeta", async (event, args)=>{
-        let trackid = args[0];
-        if(meta.hasOwnProperty(trackid)){
-            return meta[trackid];
+        if(args){
+            let trackid = args[0];
+            if(meta.hasOwnProperty(trackid)){
+                return meta[trackid];
+            }else{
+                meta[trackid] = {
+                    lapRecord: 0,
+                    sector1: 0,
+                    sector2: 0,
+                    sector3: 0
+                };
+                stateMachine.saveMeta(meta);
+                return meta[trackid];
+            }
         }else{
-            meta[trackid] = {
-                lapRecord: 0,
-                sector1: 0,
-                sector2: 0,
-                sector3: 0
-            };
-            stateMachine.saveMeta(meta);
-            return meta[trackid];
+            return meta;
         }
     })
     _electron.ipcMain.handle("newMeta", async  (event, args)=>{

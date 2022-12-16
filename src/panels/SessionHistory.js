@@ -17,6 +17,13 @@ export default class Panel_SessionHistory extends Component {
 
     }
 
+    update(){
+        window.api.invoke ("getSessions", [0, 5])
+            .then((data)=>{
+                this.setState({sessions: data});
+            });
+    }
+
     render() {
         return (
             <div>
